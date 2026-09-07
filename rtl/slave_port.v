@@ -6,9 +6,7 @@ module slave_port #(
     input clk,
     input rstn,
 
-    // ----------------------------------------------------
     // Interface to slave memory
-    // ----------------------------------------------------
     input  [DATA_WIDTH-1:0] smemrdata,
     input                   rvalid,
 
@@ -17,9 +15,7 @@ module slave_port #(
     output [ADDR_WIDTH-1:0] smemaddr,
     output [DATA_WIDTH-1:0] smemwdata,
 
-    // ----------------------------------------------------
     // Interface to serial bus
-    // ----------------------------------------------------
     input  swdata,          // Serial address/write-data bit
     output srdata,          // Serial read-data bit
 
@@ -33,9 +29,7 @@ module slave_port #(
     output ssplit           // Split request
 );
 
-    // ====================================================
     // Internal registers
-    // ====================================================
 
     // Reconstructed address received serially
     reg [ADDR_WIDTH-1:0] addr;
@@ -55,17 +49,13 @@ module slave_port #(
     // Used for address/data serialization
     reg [7:0] counter;
 
-    // ====================================================
     // Split delay
-    // ====================================================
 
     localparam LATENCY = 4;
 
     reg [7:0] rcounter;
 
-    // ====================================================
     // FSM states
-    // ====================================================
 
     localparam IDLE   = 3'b000,
                ADDR   = 3'b001,
@@ -79,9 +69,7 @@ module slave_port #(
     reg [2:0] state;
     reg [2:0] next_state;
 
-    // ====================================================
     // Combinational outputs
-    // ====================================================
 
     // Slave is ready only when idle
     assign sready = (state == IDLE);
@@ -117,9 +105,7 @@ module slave_port #(
             (state == WAIT)
         );
 
-    // ====================================================
     // Next-state logic
-    // ====================================================
 
     always @(*) begin
 
@@ -128,17 +114,13 @@ module slave_port #(
 
         case (state)
 
-            // ------------------------------------------------
             // Wait for first valid address bit
-            // ------------------------------------------------
             IDLE: begin
                 if (mvalid)
                     next_state = ADDR;
             end
 
-            // ------------------------------------------------
             // Receive remaining address bits
-            // ------------------------------------------------
             ADDR: begin
 
                 // Important:
@@ -151,10 +133,7 @@ module slave_port #(
                         next_state = SREADY;    // Read operation
                 end
             end
-
-            // ------------------------------------------------
             // Receive write data
-            // ------------------------------------------------
             WDATA: begin
 
                 // Again, last data bit must actually be valid
@@ -162,9 +141,7 @@ module slave_port #(
                     next_state = SREADY;
             end
 
-            // ------------------------------------------------
             // Start memory access
-            // ------------------------------------------------
             SREADY: begin
 
                 if (mode) begin
@@ -180,37 +157,28 @@ module slave_port #(
                 end
             end
 
-            // ------------------------------------------------
             // Normal read: wait for memory data
-            // ------------------------------------------------
             RVALID: begin
 
                 if (read_data_ready)
                     next_state = RDATA;
             end
 
-            // ------------------------------------------------
             // Split response / artificial latency
-            // ------------------------------------------------
             SPLIT: begin
 
                 if (rcounter == LATENCY-1)
                     next_state = WAIT;
             end
 
-            // ------------------------------------------------
             // Wait until arbiter allows split transaction
             // to continue AND data is available
-            // ------------------------------------------------
             WAIT: begin
 
                 if (split_grant && read_data_ready)
                     next_state = RDATA;
             end
-
-            // ------------------------------------------------
             // Send read data serially
-            // ------------------------------------------------
             RDATA: begin
 
                 if (counter == DATA_WIDTH-1)
@@ -223,11 +191,9 @@ module slave_port #(
         endcase
     end
 
-    // ====================================================
     // FSM state register
     //
     // ASYNCHRONOUS ACTIVE-LOW RESET
-    // ====================================================
 
     always @(posedge clk or negedge rstn) begin
 
@@ -238,11 +204,9 @@ module slave_port #(
 
     end
 
-    // ====================================================
     // Datapath / counter registers
     //
     // ASYNCHRONOUS ACTIVE-LOW RESET
-    // ====================================================
 
     always @(posedge clk or negedge rstn) begin
 
@@ -264,9 +228,7 @@ module slave_port #(
 
             case (state)
 
-                // ============================================
                 // IDLE
-                // ============================================
                 IDLE: begin
 
                     counter         <= 8'd0;
@@ -283,9 +245,7 @@ module slave_port #(
                     end
                 end
 
-                // ============================================
                 // ADDRESS RECEIVE
-                // ============================================
                 ADDR: begin
 
                     if (mvalid) begin
@@ -300,9 +260,7 @@ module slave_port #(
                     end
                 end
 
-                // ============================================
                 // WRITE DATA RECEIVE
-                // ============================================
                 WDATA: begin
 
                     if (mvalid) begin
@@ -317,9 +275,7 @@ module slave_port #(
                     end
                 end
 
-                // ============================================
                 // MEMORY ACCESS
-                // ============================================
                 SREADY: begin
 
                     // Nothing needs to be registered here.
@@ -329,9 +285,8 @@ module slave_port #(
 
                 end
 
-                // ============================================
+ 
                 // NORMAL READ WAIT
-                // ============================================
                 RVALID: begin
 
                     if (rvalid) begin
@@ -342,9 +297,7 @@ module slave_port #(
                     end
                 end
 
-                // ============================================
                 // SPLIT
-                // ============================================
                 SPLIT: begin
 
                     // Count split latency
@@ -361,9 +314,7 @@ module slave_port #(
                     end
                 end
 
-                // ============================================
                 // WAIT FOR SPLIT GRANT
-                // ============================================
                 WAIT: begin
 
                     rcounter <= 8'd0;
@@ -377,9 +328,7 @@ module slave_port #(
                     end
                 end
 
-                // ============================================
                 // SEND READ DATA
-                // ============================================
                 RDATA: begin
 
                     if (counter == DATA_WIDTH-1)
