@@ -1,0 +1,96 @@
+module slave_with_bram #(
+    parameter ADDR_WIDTH = 12,
+    parameter DATA_WIDTH = 8,
+    parameter MEM_SIZE   = 4096,
+    parameter SPLIT_EN   = 0
+)(
+    input  wire clk,
+    input  wire rstn,
+
+    // ----------------------------------------------------
+    // Serial bus interface
+    // ----------------------------------------------------
+    input  wire swdata,          // Serial address/write-data from master
+    output wire srdata,          // Serial read-data to master
+
+    input  wire smode,           // 0 = read, 1 = write
+    input  wire mvalid,          // swdata is valid
+
+    // Split transaction interface
+    input  wire split_grant,     // Arbiter allows split transaction to resume
+    output wire ssplit,          // Slave requests split
+
+    output wire svalid,          // srdata is valid
+    output wire sready           // Slave ready for new transaction
+);
+
+    // ====================================================
+    // Internal signals between slave_port and BRAM
+    // ====================================================
+
+    wire [DATA_WIDTH-1:0] smemrdata;
+    wire [DATA_WIDTH-1:0] smemwdata;
+
+    wire [ADDR_WIDTH-1:0] smemaddr;
+
+    wire smemwen;
+    wire smemren;
+    wire rvalid;
+
+    // ====================================================
+    // Serial bus protocol controller
+    // ====================================================
+
+    slave_port #(
+        .ADDR_WIDTH (ADDR_WIDTH),
+        .DATA_WIDTH (DATA_WIDTH),
+        .SPLIT_EN   (SPLIT_EN)
+    ) slave_port_inst (
+        .clk         (clk),
+        .rstn        (rstn),
+
+        // Memory-side interface
+        .smemrdata   (smemrdata),
+        .rvalid      (rvalid),
+        .smemwen     (smemwen),
+        .smemren     (smemren),
+        .smemaddr    (smemaddr),
+        .smemwdata   (smemwdata),
+
+        // Serial-bus interface
+        .swdata      (swdata),
+        .srdata      (srdata),
+        .smode       (smode),
+        .mvalid      (mvalid),
+
+        // Split interface
+        .split_grant (split_grant),
+        .ssplit      (ssplit),
+
+        .svalid      (svalid),
+        .sready      (sready)
+    );
+
+    // ====================================================
+    // FPGA Block RAM
+    // ====================================================
+
+    slave_memory_bram #(
+        .ADDR_WIDTH (ADDR_WIDTH),
+        .DATA_WIDTH (DATA_WIDTH),
+        .MEM_SIZE   (MEM_SIZE)
+    ) slave_memory_bram_inst (
+        .clk         (clk),
+        .rstn        (rstn),
+
+        .wen         (smemwen),
+        .ren         (smemren),
+
+        .addr        (smemaddr),
+        .wdata       (smemwdata),
+
+        .rdata       (smemrdata),
+        .rvalid      (rvalid)
+    );
+
+endmodule
