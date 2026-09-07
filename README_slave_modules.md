@@ -2,7 +2,7 @@
 
 This folder contains the **slave-side implementation** of the Serial System Bus project.
 
-My responsibility is the design and verification of:
+Its esponsibility is the design and verification of:
 
 - `slave.v`
 - `slave_port.v`
