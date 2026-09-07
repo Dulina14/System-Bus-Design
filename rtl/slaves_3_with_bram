@@ -1,0 +1,116 @@
+module slaves_3_with_bram #(
+    parameter ADDR_WIDTH = 12,
+    parameter DATA_WIDTH = 8
+)(
+    input wire clk,
+    input wire rstn,
+
+    // Slave 1
+    input  wire s1_wdata,
+    output wire s1_rdata,
+    input  wire s1_mode,
+    input  wire s1_mvalid,
+    output wire s1_svalid,
+    output wire s1_ready,
+
+    // Slave 2
+    input  wire s2_wdata,
+    output wire s2_rdata,
+    input  wire s2_mode,
+    input  wire s2_mvalid,
+    output wire s2_svalid,
+    output wire s2_ready,
+
+    // Slave 3
+    input  wire s3_wdata,
+    output wire s3_rdata,
+    input  wire s3_mode,
+    input  wire s3_mvalid,
+    output wire s3_svalid,
+    output wire s3_ready,
+    output wire s3_split,
+
+    input wire split_grant
+);
+
+    // ====================================================
+    // Slave 1 - 2 KB normal
+    // ====================================================
+
+    slave_with_bram #(
+        .ADDR_WIDTH (ADDR_WIDTH),
+        .DATA_WIDTH (DATA_WIDTH),
+        .MEM_SIZE   (2048),
+        .SPLIT_EN   (0)
+    ) slave1_inst (
+        .clk         (clk),
+        .rstn        (rstn),
+
+        .swdata      (s1_wdata),
+        .srdata      (s1_rdata),
+
+        .smode       (s1_mode),
+        .mvalid      (s1_mvalid),
+
+        .split_grant (1'b0),
+        .ssplit      (),
+
+        .svalid      (s1_svalid),
+        .sready      (s1_ready)
+    );
+
+
+    // ====================================================
+    // Slave 2 - 4 KB normal
+    // ====================================================
+
+    slave_with_bram #(
+        .ADDR_WIDTH (ADDR_WIDTH),
+        .DATA_WIDTH (DATA_WIDTH),
+        .MEM_SIZE   (4096),
+        .SPLIT_EN   (0)
+    ) slave2_inst (
+        .clk         (clk),
+        .rstn        (rstn),
+
+        .swdata      (s2_wdata),
+        .srdata      (s2_rdata),
+
+        .smode       (s2_mode),
+        .mvalid      (s2_mvalid),
+
+        .split_grant (1'b0),
+        .ssplit      (),
+
+        .svalid      (s2_svalid),
+        .sready      (s2_ready)
+    );
+
+
+    // ====================================================
+    // Slave 3 - 4 KB split capable
+    // ====================================================
+
+    slave_with_bram #(
+        .ADDR_WIDTH (ADDR_WIDTH),
+        .DATA_WIDTH (DATA_WIDTH),
+        .MEM_SIZE   (4096),
+        .SPLIT_EN   (1)
+    ) slave3_inst (
+        .clk         (clk),
+        .rstn        (rstn),
+
+        .swdata      (s3_wdata),
+        .srdata      (s3_rdata),
+
+        .smode       (s3_mode),
+        .mvalid      (s3_mvalid),
+
+        .split_grant (split_grant),
+        .ssplit      (s3_split),
+
+        .svalid      (s3_svalid),
+        .sready      (s3_ready)
+    );
+
+endmodule
