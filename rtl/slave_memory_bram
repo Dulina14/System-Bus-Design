@@ -16,17 +16,13 @@ module slave_memory_bram #(
     output reg                   rvalid
 );
 
-    // ====================================================
     // Memory organization
-    // ====================================================
 
     localparam BYTES_PER_WORD = DATA_WIDTH / 8;
     localparam NUM_LOCATIONS  = MEM_SIZE / BYTES_PER_WORD;
     localparam MEM_ADDR_WIDTH = $clog2(NUM_LOCATIONS);
 
-    // ====================================================
     // BRAM selection
-    // ====================================================
 
     generate
 
@@ -57,12 +53,10 @@ module slave_memory_bram #(
 
     endgenerate
 
-    // ====================================================
     // Read-valid control
     //
     // Assumes BRAM read data becomes valid one clock
     // after ren is asserted.
-    // ====================================================
 
     always @(posedge clk or negedge rstn) begin
         if (!rstn)
