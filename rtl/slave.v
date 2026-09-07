@@ -7,9 +7,7 @@ module slave #(
     input  wire clk,
     input  wire rstn,
 
-    // ----------------------------------------------------
     // Serial bus interface
-    // ----------------------------------------------------
     input  wire swdata,         // Serial address/write-data bit from master
     output wire srdata,         // Serial read-data bit to master
 
@@ -23,9 +21,7 @@ module slave #(
     output wire ssplit          // Split request
 );
 
-    // ====================================================
     // Internal signals between slave_port and slave_memory
-    // ====================================================
 
     wire [DATA_WIDTH-1:0] smemrdata;
     wire [DATA_WIDTH-1:0] smemwdata;
@@ -36,9 +32,7 @@ module slave #(
     wire smemren;
     wire rvalid;
 
-    // ====================================================
     // Serial bus protocol controller
-    // ====================================================
 
     slave_port #(
         .ADDR_WIDTH (ADDR_WIDTH),
@@ -69,9 +63,7 @@ module slave #(
         .ssplit      (ssplit)
     );
 
-    // ====================================================
     // Slave memory
-    // ====================================================
 
     slave_memory #(
         .ADDR_WIDTH (ADDR_WIDTH),
