@@ -16,9 +16,7 @@ module slave_memory #(
     output reg                   rvalid
 );
 
-    // ====================================================
     // Memory organization
-    // ====================================================
 
     // Number of bytes contained in one memory word
     localparam BYTES_PER_WORD = DATA_WIDTH / 8;
@@ -29,10 +27,8 @@ module slave_memory #(
     // Number of address bits required for those locations
     localparam MEM_ADDR_WIDTH = $clog2(NUM_LOCATIONS);
 
-    // ====================================================
-    // Memory array
-    // ====================================================
 
+    // Memory array
     reg [DATA_WIDTH-1:0] memory [0:NUM_LOCATIONS-1];
 
     // Memory index
@@ -43,9 +39,7 @@ module slave_memory #(
 
     assign mem_addr = addr[MEM_ADDR_WIDTH-1:0];
 
-    // ====================================================
     // Write operation
-    // ====================================================
 
     // Do NOT asynchronously reset the entire memory array.
     // This allows Quartus to infer FPGA block RAM.
@@ -55,13 +49,11 @@ module slave_memory #(
         end
     end
 
-    // ====================================================
     // Read operation
     //
     // Synchronous read:
     // ren asserted in one cycle
     // -> rdata/rvalid become valid after the clock edge
-    // ====================================================
 
     always @(posedge clk or negedge rstn) begin
         if (!rstn) begin
